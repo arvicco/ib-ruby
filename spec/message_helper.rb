@@ -22,22 +22,20 @@ end
 
 # Not using these helpers just use match directly instead e.g.:
 #        it { log_entries.any? { |entry| expect(entry).to match(/No subscribers for message .*:Alert!/) }}
+# AV: This will not work as your code does something completely different.
+#     Besides, it's broken for RSpec 2.10 that is specified in gemspec
 
-#def should_log *patterns
-#  patterns.each do |pattern|
-    #old should entry
-    #log_entries.any? { |entry| entry =~ pattern }.should be_true
-#    log_entries.any? { |entry| pp (entry =~ pattern); expect(entry =~ pattern).to be_true }
-#  end
-#end
+def should_log *patterns
+ patterns.each do |pattern|
+   log_entries.any? { |entry| entry =~ pattern }.should be_true
+ end
+end
 
-#def should_not_log *patterns
-#  patterns.each do |pattern|
-#    log_entries.any? { |entry| pp (entry =~ pattern); expect(entry =~ pattern).to be_false }
-#    #old should entry
-#    #log_entries.any? { |entry| entry =~ pattern }.should be_false
-#  end
-#end
+def should_not_log *patterns
+ patterns.each do |pattern|
+   log_entries.any? { |entry| entry =~ pattern }.should be_false
+ end
+end
 
 ## Connection helpers
 
