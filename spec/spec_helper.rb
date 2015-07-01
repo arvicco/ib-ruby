@@ -7,33 +7,22 @@ require 'pp'
 
 OPTS ||= {
   :verbose => false, #true, # Run test suite in a verbose mode ?
-  :brokertron => false, # Use mock (Brokertron) instead of paper account ?
   :rails => IB.rails? && Rails.application.class.parent_name,
   :db => IB.db_backed?
 }
 
-if OPTS[:brokertron]
-  puts "Using Brokerton free.brokertron.com mock service."
-  # Connection to mock (Brokertron) account
-  OPTS[:connection] = {
-    :client_id => 1111, # Client id that identifies the test suit
-    :host => 'free.brokertron.com',
-    :port => 10501
-  }
-else
-  # Connection to IB PAPER ACCOUNT
-  ACCOUNT ||= 'DU60320' # Set this to your Paper Account Number
-  HOST ||= '127.0.0.1'
-  PORT ||= 4001
+# Connection to your IB PAPER ACCOUNT
+ACCOUNT ||= 'DU248504' # Set this to your Paper Account Number
+HOST ||= '127.0.0.1'
+PORT ||= 4001
 
-  OPTS[:connection] = {
-    :account => ACCOUNT, # Your IB PAPER ACCOUNT, tests will only run against it
-    :host => HOST, #       Where your TWS/gateway is located, likely '127.0.0.1'
-    :port => PORT, #       4001 for Gateway, 7496 for TWS GUI
-    :client_id => 1111, #  Client id that identifies the test suit
-    :reuters => true #     Subscription to Reuters data enabled ?
-  }
-end
+OPTS[:connection] = {
+  :account => ACCOUNT, # Your IB PAPER ACCOUNT, tests will only run against it
+  :host => HOST, #       Where your TWS/gateway is located, likely '127.0.0.1'
+  :port => PORT, #       4001 for Gateway, 7496 for TWS GUI
+  :client_id => 1111, #  Client id that identifies the test suit
+  :reuters => true #     Subscription to Reuters data enabled ?
+}
 
 RSpec.configure do |config|
 

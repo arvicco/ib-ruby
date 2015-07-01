@@ -2,7 +2,7 @@
 
 Ruby Implementation of the Interactive Brokers Trader Workstation (TWS) API v.965-967.
 
-Copyright (C) 2006-2013 Paul Legato, Wes Devauld, and Ar Vicco.
+Copyright (C) 2006-2015 Paul Legato, Wes Devauld, and Ar Vicco.
 
 https://github.com/ib-ruby/ib-ruby
 
@@ -236,4 +236,3 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301 USA
-
