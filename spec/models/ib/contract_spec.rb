@@ -5,17 +5,17 @@ describe IB::Contract,
   :props =>
   {:symbol => 'AAPL',
    :sec_type => :option,
-   :expiry => '201301',
-   :strike => 600.5,
-   :right => :put,
+   :expiry => '201601',
+   :strike => 500,
+   :right => :call,
    :sec_id => 'US0378331005',
    :sec_id_type => 'ISIN',
    :multiplier => 10,
    :exchange => 'SMART',
    :currency => 'USD',
-   :local_symbol => 'AAPL  130119C00500000'},
+   :local_symbol => 'AAPL  160119C00500000'},
 
-  :human => "<Contract: AAPL option 201301 put 600.5 SMART USD>",
+  :human => "<Contract: AAPL option 201601 call 500.0 SMART USD>",
 
   :errors => {:sec_type => ["should be valid security type"] },
 
@@ -119,7 +119,7 @@ describe IB::Contract,
       # TODO: Change butterfly into a stub, reduce dependency on IB connection
       @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)
       @ib.wait_for :ManagedAccounts
-      @combo = butterfly 'GOOG', '201301', 'CALL', 500, 510, 520
+      @combo = butterfly 'GOOG', '201601', 'CALL', 500, 510, 520
       close_connection
     end
 
@@ -127,12 +127,12 @@ describe IB::Contract,
 
     it "serializes long" do
       subject.serialize_long.should ==
-        ["AAPL", "OPT", "201301", 600.5, "P", 10, "SMART", nil, "USD", "AAPL  130119C00500000"]
+        ["AAPL", "OPT", "201601", 500, "C", 10, "SMART", nil, "USD", "AAPL  160119C00500000"]
     end
 
     it "serializes short" do
       subject.serialize_short.should ==
-        ["AAPL", "OPT", "201301", 600.5, "P", 10, "SMART", "USD", "AAPL  130119C00500000"]
+        ["AAPL", "OPT", "201601", 500, "C", 10, "SMART", "USD", "AAPL  160119C00500000"]
     end
 
     it "serializes combo (BAG) contracts for Order placement" do
@@ -145,12 +145,12 @@ describe IB::Contract,
       subject.serialize_legs(:extended).should == []
 
       @combo.serialize_legs.should ==
-        [3, 81032967, 1, "BUY", "SMART", 81032968, 2, "SELL", "SMART", 81032973, 1, "BUY", "SMART"]
+        [3, 192317099, 1, "BUY", "SMART", 192317102, 2, "SELL", "SMART", 192317104, 1, "BUY", "SMART"]
 
       @combo.serialize_legs(:extended).should ==
-        [3, 81032967, 1, "BUY", "SMART", 0, 0, "", -1,
-         81032968, 2, "SELL", "SMART", 0, 0, "", -1,
-         81032973, 1, "BUY", "SMART", 0, 0, "", -1]
+        [3, 192317099, 1, "BUY", "SMART", 0, 0, "", -1,
+         192317102, 2, "SELL", "SMART", 0, 0, "", -1,
+         192317104, 1, "BUY", "SMART", 0, 0, "", -1]
         end
   end #serialization
 

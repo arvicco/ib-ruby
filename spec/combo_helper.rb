@@ -28,4 +28,3 @@ def butterfly symbol, expiry, right, *strikes
               :exchange => "SMART",
               :legs => legs
 end
-
