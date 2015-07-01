@@ -11,7 +11,6 @@ require 'message_helper'
 describe "Request Market Data Type", :connected => true, :integration => true do
 
   before(:all) do
-    verify_account
     @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)
   end
 
