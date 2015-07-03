@@ -7,7 +7,6 @@ def verify_account
   puts
   puts 'WARNING: MAKE SURE TO RUN INTEGRATION TESTS AGAINST IB PAPER ACCOUNT ONLY!'
   puts 'WARNING: FINANCIAL LOSSES MAY RESULT IF YOU RUN TESTS WITH REAL IB ACCOUNT!'
-  puts 'WARNING: YOU HAVE BEEN WARNED!'
   puts
   puts 'Configure your connection to IB PAPER ACCOUNT in spec/spec_helper.rb'
   puts

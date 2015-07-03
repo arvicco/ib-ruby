@@ -28,8 +28,8 @@ module IB
       # See 'ib/constants.rb' ORDER_TYPES for a complete list of valid values.
 
       :limit_price, # double: LIMIT price, used for limit, stop-limit and relative
-      #               orders. In all other cases specify zero. For relative
-      #               orders with no limit price, also specify zero.
+      #               orders. *In all other cases specify zero*.
+      #               For relative orders with no limit price, also specify zero.
 
       :aux_price, #   double: STOP price for stop-limit orders, and the OFFSET amount
       #               for relative orders. In all other cases, specify zero.
@@ -288,6 +288,7 @@ module IB
 
     def default_attributes
       super.merge :aux_price => 0.0,
+        :limit_price => 0.0,
         :discretionary_amount => 0.0,
         :parent_id => 0,
         :tif => :day,
@@ -351,16 +352,19 @@ module IB
       super(other) ||
         other.is_a?(self.class) &&
         (perm_id && other.perm_id && perm_id == other.perm_id ||
-         local_id == other.local_id && # ((p __LINE__)||true) &&
+         local_id == other.local_id &&
          (client_id == other.client_id || client_id == 0 || other.client_id == 0) &&
          parent_id == other.parent_id &&
          tif == other.tif &&
-         action == other.action &&
-         order_type == other.order_type &&
+         action == other.action && # ((p "!!! Passing: #{ __LINE__}")||true) &&
+         (order_type == other.order_type ||
+          order_type.to_s =~ /limit/ && other.order_type.to_s =~ /limit/ ) &&
          quantity == other.quantity &&
-         (limit_price == other.limit_price || # TODO Floats should be Decimals!
+         # TODO Floats should be Decimals!
+         (limit_price == other.limit_price ||
           (limit_price - other.limit_price).abs < 0.00001) &&
-         aux_price == other.aux_price &&
+         (aux_price == other.aux_price ||
+          (aux_price - other.aux_price).abs < 0.00001) &&
          origin == other.origin &&
          designated_location == other.designated_location &&
          exempt_code == other.exempt_code &&

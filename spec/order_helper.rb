@@ -136,7 +136,7 @@ shared_examples_for 'Placed Order' do
       @ib.next_local_id.should == @local_id_after
     end
 
-    it 'only receives OpenOrder message with (Pending)Cancel', 
+    it 'only receives OpenOrder message with (Pending)Cancel',
       :pending => 'Receives OrderState: PreSubmitted from previous context' do
       if @ib.received? :OpenOrder
         # p @ib.received[:OrderStatus].size
@@ -183,10 +183,7 @@ def place_order contract, opts = {}
 end
 
 def status_should_be status, order=@order
-  msg = @ib.received[:OrderStatus].find do |msg|
-    msg.local_id == order.local_id &&
-      status.is_a?(Regexp) ? msg.status =~ status : msg.status == status
-  end
+  msg = find_order_message :OrderStatus, status, order
   msg.should_not be_nil
   msg.should be_an IB::Messages::Incoming::OrderStatus
   order_state = msg.order_state
@@ -212,12 +209,17 @@ def status_should_be status, order=@order
 end
 
 def order_should_be status, order=@order
-  msg = @ib.received[:OpenOrder].find do |msg|
+  msg = find_order_message :OpenOrder, status, order
+  msg.should_not be_nil
+  msg.should be_an IB::Messages::Incoming::OpenOrder
+  #pp order, msg.order
+  msg.order.should == order
+  msg.contract.should == @contract
+end
+
+def find_order_message type, status, order=@order
+  @ib.received[type].find do |msg|
     msg.local_id == order.local_id &&
       status.is_a?(Regexp) ? msg.status =~ status : msg.status == status
   end
-  msg.should_not be_nil
-  msg.should be_an IB::Messages::Incoming::OpenOrder
-  msg.order.should == order
-  msg.contract.should == @contract
 end

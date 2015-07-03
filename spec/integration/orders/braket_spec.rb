@@ -19,16 +19,16 @@ describe 'Braket Orders', :connected => true, :integration => true do
       # This is a main order
       @order = IB::Order.new(:total_quantity => 100,
                              :limit_price => 125,
-                             :action => 'BUY',
-                             :order_type => 'LMT',
+                             :action => :buy,
+                             :order_type => :limit,
                              :order_ref => 'main',
                              :transmit => false)
 
       # This is an attached stop-loss order
       @stop_order = IB::Order.new(:total_quantity => 100,
                              :aux_price => 123,
-                             :action => 'SELL',
-                             :order_type => 'STP',
+                             :action => :sell,
+                             :order_type => :stop,
                              :parent_id => @local_id, # of the main order
                              :order_ref => 'stop-loss',
                              :transmit => false)
@@ -37,8 +37,8 @@ describe 'Braket Orders', :connected => true, :integration => true do
       @takeprofit_order = IB::Order.new(:total_quantity => 100,
                              :limit_price => 137,
                              :aux_price => 135,
-                             :action => 'SELL',
-                             :order_type => 'STPLMT',
+                             :action => :sell,
+                             :order_type => 'STPLMT', #:stop_limit,
                              :parent_id => @local_id, # of the main order
                              :order_ref => 'take-profit',
                              :transmit => true)
@@ -58,28 +58,35 @@ describe 'Braket Orders', :connected => true, :integration => true do
       @ib.received[:OrderStatus].should have_exactly(0).status_message
     end
 
-
     context 'When last braket order is placed' do
       before(:all) do
         # Now, we place last attached order with (transmit=true)
         @ib.place_order @takeprofit_order, @contract
-
         @ib.wait_for [:OpenOrder, 3], [:OrderStatus, 3], 3
       end
-
 
       it 'does transmit all connected braket orders' do
         @ib.received[:OpenOrder].should have_at_least(3).order_message
         @ib.received[:OrderStatus].should have_at_least(3).status_message
+      end
+
+      it 'puts attached braket orders into trigger-pending state' do
+        order_should_be /Submitted/, @stop_order
+        msg = find_order_message :OrderStatus, /Submitted/, @stop_order
+        msg.order_state.parent_id.should == @local_id
+        msg.order_state.why_held.should =~ /child,trigger/
+        order_should_be /Submitted/, @takeprofit_order
+        msg = find_order_message :OrderStatus, /Submitted/, @takeprofit_order
+        msg.order_state.parent_id.should == @local_id
+        msg.order_state.why_held.should =~ /child,trigger/
       end
     end
 
     context 'When original Order cancels' do
       before(:all) do
         @ib.cancel_order @local_id
-
         @ib.wait_for 2 #[:OrderStatus, 3], 3
-        @ib.clear_received # make sure old order status messages are disposed of
+        clean_connection # make sure old order status messages are disposed of
       end
 
       it 'attached braket orders are cancelled implicitly' do

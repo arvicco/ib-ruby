@@ -12,6 +12,11 @@ module IB
                                     :sec_type => :stock,
                                     :description => "Apple Inc."),
 
+          :ibm => IB::Contract.new(:symbol => "IBM",
+                                    :currency => "USD",
+                                    :sec_type => :stock,
+                                    :description => "IBM"),
+
           :vxx => IB::Contract.new(:symbol => "VXX",
                                    :exchange => "ARCA",
                                    # :currency => "USD",
