@@ -20,6 +20,17 @@ module IB
                                    :currency => "USD",
                                    :sec_type => :bond,
                                    :description => "Any Wallgreens bond"),
+
+          :aapl => IB::Contract.new( :symbol => "AAPL",
+                                    :currency => "USD",
+                                    :sec_type => :bond,
+                                    :description => "Any Apple bond"),
+
+          :amzn => IB::Contract.new( :symbol => "AMZN",
+                                    :currency => "USD",
+                                    :sec_type => :bond,
+                                    :description => "Any Amazon bond"),
+
         }
       end
 

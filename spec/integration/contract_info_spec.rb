@@ -64,9 +64,9 @@ describe "Request Contract Info", :connected => true, :integration => true do
   context "Request Option contract data" do
 
     before(:all) do
-      @contract = IB::Option.new :symbol => "AAPL", :expiry => "201301",
-                                 :right => :call, :strike => 500
-      @ib.send_message :RequestContractData, :id => 123, :contract => @contract
+      @contract = IB::Option.new :symbol => "AAPL", :expiry => "20160115",
+                                :right => :call, :strike => 150
+      @ib.send_message :RequestContractData, :id => 122, :contract => @contract
       @ib.wait_for :ContractDataEnd, 5 # sec
     end
 
@@ -74,11 +74,11 @@ describe "Request Contract Info", :connected => true, :integration => true do
 
     subject { @ib.received[:ContractData].first }
 
-    it { @ib.received[:ContractData].should have_exactly(1).contract_data }
+    it { @ib.received[:ContractData].should have_at_least(1).contract_data }
     it { @ib.received[:ContractDataEnd].should have_exactly(1).contract_data_end }
 
     it 'receives Contract Data for requested contract' do
-      subject.request_id.should == 123
+      subject.request_id.should == 122
       subject.contract.should == @contract
       subject.contract.should be_valid
     end
@@ -88,8 +88,9 @@ describe "Request Contract Info", :connected => true, :integration => true do
       detail = subject.contract_detail
 
       contract.symbol.should == 'AAPL'
-      contract.local_symbol.should == 'AAPL  130119C00500000'
-      contract.expiry.should == '20130118'
+      contract.local_symbol.should == 'AAPL  160115C00150000'
+      contract.expiry.should == '20160115'
+      contract.strike.to_i.should == 150
       contract.exchange.should == 'SMART'
       contract.con_id.should be_an Integer
 
@@ -103,7 +104,7 @@ describe "Request Contract Info", :connected => true, :integration => true do
       detail.liquid_hours.should =~ /\d{8}:\d{4}-\d{4}/
       detail.valid_exchanges.should =~ /CBOE/
       detail.order_types.should be_a String
-      detail.price_magnifier.should == 1
+      detail.price_magnifier.should be_an Integer
       detail.min_tick.should == 0.01
     end
   end # Request Option data
@@ -206,7 +207,7 @@ describe "Request Contract Info", :connected => true, :integration => true do
   context "Request Bond data" do
 
     before(:all) do
-      @contract = IB::Symbols::Bonds[:wag] # Wallgreens bonds (multiple)
+      @contract = IB::Symbols::Bonds[:amzn] # Wallgreens bonds (multiple)
       @ib.send_message :RequestContractData, :id => 158, :contract => @contract
       @ib.wait_for :ContractDataEnd, 5 # sec
     end
@@ -233,18 +234,18 @@ describe "Request Contract Info", :connected => true, :integration => true do
       contract.con_id.should be_an Integer
 
       detail.cusip.should be_a String
-      detail.desc_append.should =~ /WAG/ # "WAG 4 7/8 08/01/13" or similar
+      detail.desc_append.should =~ /AMZN/ # "WAG 4 7/8 08/01/13" or similar
       detail.trading_class.should =~ /IBCID/ # "IBCID113527163"
       detail.sec_id_list.should be_a Hash
-      detail.sec_id_list.should have_key "CUSIP"
-      detail.sec_id_list.should have_key "ISIN"
+#     IB doesn't provide such details for Bonds any longer
+#      detail.sec_id_list.should have_key :cusip
+#      detail.sec_id_list.should have_key :isin
       detail.valid_exchanges.should be_a String
       detail.order_types.should be_a String
-      detail.min_tick.should == 0.001
+      detail.min_tick.should == 0.0001
     end
   end # Request Forex data
 end # Contract Data
-
 
 __END__
 ContractData messages v.6 and 8 identical:
