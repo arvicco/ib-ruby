@@ -1,5 +1,4 @@
 require 'order_helper'
-require 'combo_helper'
 
 def define_contracts
   @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)

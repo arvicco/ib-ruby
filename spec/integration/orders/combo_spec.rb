@@ -1,18 +1,17 @@
 require 'order_helper'
-require 'combo_helper'
 
 describe "Combo Order", :connected => true, :integration => true, :slow => true do
 
   let(:contract_type) { :butterfly }
 
-  before(:all) { verify_account }
+  before(:all) { verify_account; cancel_orders }
 
   context 'What-if order' do
     before(:all) do
       @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)
       @ib.wait_for :NextValidId
 
-      @contract = butterfly 'GOOG', '201301', 'CALL', 500, 510, 520
+      @contract = butterfly 'GOOG', '201601', 'CALL', 500, 510, 520
 
       place_order @contract,
                   :order_ref => 'What_if',
@@ -66,7 +65,7 @@ describe "Combo Order", :connected => true, :integration => true, :slow => true 
       @ib.wait_for :NextValidId
       @ib.clear_received # to avoid conflict with pre-existing Orders
 
-      @contract = butterfly 'GOOG', '201301', 'CALL', 500, 510, 520
+      @contract = butterfly 'GOOG', '201601', 'CALL', 500, 510, 520
 
       place_order @contract,
                   :order_ref => 'Original',
