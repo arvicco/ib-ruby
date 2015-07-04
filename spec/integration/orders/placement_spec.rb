@@ -3,7 +3,7 @@ require 'order_helper'
 describe 'Orders', :connected => true, :integration => true do
   let(:contract_type) { :stock }
 
-  before(:all) { verify_account }
+  before(:all) { verify_account; cancel_orders }
 
   context 'Placing wrong order', :slow => true do
 
@@ -71,7 +71,7 @@ describe 'Orders', :connected => true, :integration => true do
       order.equity_with_loan.should be > 0
       order.init_margin.should be > 0
       order.maint_margin.should be > 0
-      order.commission.should be > 1
+      order.commission.should be >= 1
     end
 
     it 'is not actually being placed though' do

@@ -51,7 +51,7 @@ describe 'Ids valid for Order placement', :connected => true, :integration => tr
 
     it_behaves_like 'Received single id'
 
-    it 'receives also :OpenOrderEnd message', :pending => 'not in GW 924.3a' do
+    it 'receives also :OpenOrderEnd message', :pending => 'not in GW 924.3+' do
       @ib.received[:OpenOrderEnd].should have_exactly(1).message
       @ib.received[:OpenOrderEnd].first.should be_an IB::Messages::Incoming::OpenOrderEnd
     end
@@ -80,4 +80,3 @@ describe 'Ids valid for Order placement', :connected => true, :integration => tr
   end # number of ids is silently ignored
 
 end # Ids valid for Order placement
-
