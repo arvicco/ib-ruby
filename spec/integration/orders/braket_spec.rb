@@ -2,9 +2,7 @@ require 'order_helper'
 
 describe 'Braket Orders', :connected => true, :integration => true do
 
-  before(:all) do
-    verify_account
-  end
+  before(:all) { verify_account; cancel_orders }
 
   context "Braket Orders (with profit-taking/stoplimit attached)" do
 

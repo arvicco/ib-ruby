@@ -5,26 +5,29 @@ def define_contracts
   @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)
   @contracts = {
     :stock => IB::Symbols::Stocks[:wfc],
-    :butterfly => butterfly('GOOG', '201301', 'CALL', 500, 510, 520)
+    :butterfly => butterfly('GOOG', '201601', 'CALL', 500, 510, 520)
   }
   close_connection
 end
 
+# This spec is similar to braket_spec, but testing a wider set of
+# Parent + Attached Order combinations. You may want to comment out
+# lines 25-29 in order for your specs to run faster
 describe 'Attached Orders', :connected => true, :integration => true do
 
   before(:all) do
     verify_account
     define_contracts
+    cancel_orders
   end
 
-  # Testing different combinations of Parent + Attached Orders:
   [
     [:stock, 100, 'DAY', 'LMT', 9.13, 20.0], # Parent + takeprofit target
-    #[:stock, 100, 'DAY', 'STP', 9.13, 0.0, 8.0], # Parent + stoploss
-    #[:stock, 100, 'GTC', 'LMT', 9.13, 20.0], # GTC Parent + target
-    [:butterfly, 10, 'DAY', 'LMT', 0.05, 1.0], # Combo Parent + target
-    #[:butterfly, 10, 'GTC', 'LMT', 0.05, 1.0], # GTC Combo Parent + target
-    #[:butterfly, 100, 'GTC', 'STPLMT', 0.05, 0.05, 1.0], # GTC Combo Parent + stoplimit target
+    # [:stock, 100, 'DAY', 'STP', 9.13, 0.0, 8.0], # Parent + stoploss
+    # [:stock, 100, 'GTC', 'LMT', 9.13, 20.0], # GTC Parent + target
+    # [:butterfly, 10, 'DAY', 'LMT', 0.05, 1.0], # Combo Parent + target
+    # [:butterfly, 10, 'GTC', 'LMT', 0.05, 1.0], # GTC Combo Parent + target
+    [:butterfly, 100, 'GTC', 'STPLMT', 0.05, 0.05, 1.0], # GTC Combo Parent + stoplimit target
   ].each do |(contract, qty, tif, attach_type, limit_price, attach_price, aux_price)|
     context "#{tif} BUY (#{contract}) limit order with attached #{attach_type} SELL" do
       let(:contract_type) { contract }
@@ -34,15 +37,13 @@ describe 'Attached Orders', :connected => true, :integration => true do
         @ib.wait_for :NextValidId
         @ib.clear_received # to avoid conflict with pre-existing Orders
 
-        #p [contract, qty, tif, attach_type, limit_price, attach_price, aux_price]
         @contract = @contracts[contract]
-        place_order @contract,
-        :total_quantity => qty,
-        :limit_price => limit_price,
-        :tif => tif,
-        :transmit => false
+        place_order @contract, :total_quantity => qty,
+                              :limit_price => limit_price,
+                              :tif => tif,
+                              :transmit => false
 
-        @ib.wait_for :OpenOrder, :OrderStatus, 2
+        @ib.wait_for :OpenOrder, :OrderStatus, 1
       end
 
       after(:all) { close_connection }
@@ -55,12 +56,12 @@ describe 'Attached Orders', :connected => true, :integration => true do
       context "Attaching #{attach_type} order" do
         before(:all) do
           @attached_order = IB::Order.new :limit_price => attach_price,
-          :aux_price => aux_price || 0,
-          :total_quantity => qty,
-          :side => :sell,
-          :tif => tif,
-          :order_type => attach_type,
-          :parent_id => @local_id_placed
+                                          :aux_price => aux_price || 0,
+                                          :total_quantity => qty,
+                                          :side => :sell,
+                                          :tif => tif,
+                                          :order_type => attach_type,
+                                          :parent_id => @local_id_placed
 
           @local_id_attached = @ib.place_order @attached_order, @contract
           @local_id_after = @ib.next_local_id

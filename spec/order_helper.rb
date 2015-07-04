@@ -1,5 +1,17 @@
 require 'integration_helper'
 
+# Most Order placement specs implicitly depend on Gateway/TWS state,
+# assuming no orders are hanging around from other specs or otherwise
+# We need to have a clean slate before each spec run
+def cancel_orders
+    @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)
+    @ib.wait_for :OpenOrderEnd
+    @ib.send_message :RequestGlobalCancel
+    @ib.send_message :RequestAllOpenOrders
+    @ib.wait_for :OpenOrderEnd
+    close_connection
+end
+
 shared_examples_for 'Placed Order' do
   context "Placing" do
     after(:all) { clean_connection } # Clear logs and message collector
@@ -23,17 +35,9 @@ shared_examples_for 'Placed Order' do
     end
 
     it 'receives confirmation of Order submission' do
-      order_should_be /Submit/ # ()Pre)Submitted
+      order_should_be /Submit/ # (Pre)Submitted
       status_should_be /Submit/
-
-      if @attached_order
-        if contract_type == :butterfly && @attached_order.tif == :good_till_cancelled
-          pending 'API Bug: Attached GTC orders not working for butterflies!'
-        else
-          order_should_be /Submit/, @attached_order
-        end
-      end
-
+      order_should_be( /Submit/, @attached_order) if @attached_order
     end
   end # Placing
 
@@ -58,37 +62,28 @@ shared_examples_for 'Placed Order' do
     it 'receives OpenOrder and OrderStatus for placed order(s)' do
       order_should_be /Submitted/
       status_should_be /Submitted/
-
-      #pp @ib.received[:OpenOrder].first
-      #
-      if @attached_order
-        if contract_type == :butterfly && @attached_order.tif == :good_till_cancelled
-          pending 'API Bug: Attached GTC orders not working for butterflies!'
-        else
-          order_should_be /Submit/, @attached_order
-        end
-      end
+      order_should_be( /Submit/, @attached_order) if @attached_order
     end
   end # Retrieving
 
   context "Modifying Order" do
     before(:all) do
-      # Modification only works for non-attached orders
+      # Modify main order
       @order.total_quantity *= 2
       @order.limit_price += 0.05
       @order.transmit = true
       @order.tif = 'GTC'
       @ib.modify_order @order, @contract
 
+      # Modify attached order, if any
       if @attached_order
-        # Modify attached order, if any
-        @attached_order.limit_price += 0.05
+        @attached_order.limit_price += 0.05 unless @attached_order.order_type == :stop
         @attached_order.total_quantity *= 2
         @attached_order.tif = 'GTC'
         @ib.modify_order @attached_order, @contract
       end
       @ib.send_message :RequestOpenOrders
-      @ib.wait_for :OpenOrderEnd, 6 #sec
+      @ib.wait_for :OpenOrderEnd, 5 #sec
     end
 
     after(:all) { clean_connection } # Clear logs and message collector
@@ -113,14 +108,7 @@ shared_examples_for 'Placed Order' do
       @contract.should == @ib.received[:OpenOrder].first.contract
       order_should_be /Submit/
       status_should_be /Submit/
-
-      if @attached_order
-        if contract_type == :butterfly && @attached_order.tif == :good_till_cancelled
-          pending 'API Bug: Attached GTC orders not working for butterflies!'
-        else
-          order_should_be /Submit/, @attached_order
-        end
-      end
+      order_should_be( /Submit/, @attached_order) if @attached_order
     end
   end # Modifying
 
@@ -136,14 +124,12 @@ shared_examples_for 'Placed Order' do
       @ib.next_local_id.should == @local_id_after
     end
 
-    it 'only receives OpenOrder message with (Pending)Cancel',
-      :pending => 'Receives OrderState: PreSubmitted from previous context' do
-      if @ib.received? :OpenOrder
-        # p @ib.received[:OrderStatus].size
-        # p @ib.received[ :OpenOrder].map {|m| m.order.limit_price.to_s+m.status}
-        order_should_be /Cancel/
-      end
-    end
+    # it 'only receives OpenOrder message with (Pending)Cancel',
+    #   :pending => 'Receives OrderState: PreSubmitted from previous context' do
+    #   if @ib.received? :OpenOrder
+    #     order_should_be /Cancel/
+    #   end
+    # end
 
     it 'receives all appropriate response messages' do
       @ib.received[:OrderStatus].should have_at_least(1).status_message
@@ -152,13 +138,11 @@ shared_examples_for 'Placed Order' do
 
     it 'receives cancellation Order Status' do
       status_should_be /Cancel/ # Cancelled / PendingCancel
-      if @attached_order
-        if contract_type == :butterfly && @attached_order.tif == :good_till_cancelled
-          pending 'API Bug: Attached GTC orders not working for butterflies!'
-        else
-          status_should_be /Cancel/, @attached_order
-        end
-      end
+      status_should_be( /Cancel/, @attached_order) if @attached_order
+        # if contract_type == :butterfly && @attached_order.tif == :good_till_cancelled
+        #   pending 'API Bug: Attached GTC orders not working for butterflies!'
+        #   # But you may set attached DAY order and then modify it to GTC ;)
+        # end
     end
 
     it 'receives Order cancelled Alert' do
@@ -212,7 +196,7 @@ def order_should_be status, order=@order
   msg = find_order_message :OpenOrder, status, order
   msg.should_not be_nil
   msg.should be_an IB::Messages::Incoming::OpenOrder
-  #pp order, msg.order
+  # pp order, msg.order
   msg.order.should == order
   msg.contract.should == @contract
 end
