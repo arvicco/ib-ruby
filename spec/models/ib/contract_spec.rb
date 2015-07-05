@@ -1,5 +1,5 @@
 require 'model_helper'
-require 'combo_helper'
+require 'order_helper'
 
 describe IB::Contract,
   :props =>

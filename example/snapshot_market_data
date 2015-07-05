@@ -4,11 +4,10 @@
 ##
 #
 class Snapshot
-	def initialize 
+	def initialize
 		@contracts = Hash.new
 		@prices = Hash.new
 	end
-
 
 	def add_contract id, a_hash, description
 		@contracts[id] = { :contract => IB::Contract.new( a_hash ) , :display_text => description }
@@ -21,9 +20,8 @@ class Snapshot
 		end
 	end
 
-
 	def process
-		ib =  IB::Connection.current
+		ib = IB::Connection.current
 		@count =  @contracts.size
 		unless ib.nil?
 			ib.subscribe(:Alert, :TickPrice,:TickSize,:TickString,:TickGeneric,:TickSnapshotEnd) do |msg|
@@ -50,7 +48,7 @@ class Snapshot
 					when IB::Messages::Incoming::TickString, IB::Messages::Incoming::TickGeneric
 						#		we ignore this message silently
 					when IB::Messages::Incoming::TickSnapshotEnd
-						@count -=1   
+						@count -=1
 						print_results if @count.zero?
 					else
 						# unhandled message
@@ -60,9 +58,8 @@ class Snapshot
 			end
 
 			@contracts.each do |id, contract_hash |
-
-				ib.send_message :RequestMarketData, 
-												:ticker_id => id, 
+				ib.send_message :RequestMarketData,
+												:ticker_id => id,
 												:contract => contract_hash[:contract],
 												:snapshot => 1
 			end
@@ -82,7 +79,7 @@ require 'ib-ruby'
 log.level = Logger::FATAL
 #
 # # Connect to IB TWS
-IB::Connection.new :client_id => 1112 , :port => 7496 # TWS
+IB::Connection.new :client_id => 1112 #, :port => 7496 # TWS
 
 s = Snapshot.new
 s.add_contract 2, {:con_id => 269120, :exchange => 'SMART'}, 'Fastenal'

@@ -3,10 +3,10 @@ require 'integration_helper'
 describe 'Request Historic Data', :connected => true, :integration => true do
 
   CORRECT_OPTS = {:id => 567,
-                  :contract => IB::Symbols::Stocks[:wfc],
+                  :contract => IB::Symbols::Forex[:eurusd], #IB::Symbols::Stocks[:aapl],
                   :end_date_time => Time.now.to_ib,
                   :duration => '5 D',
-                  :bar_size => '15 mins',
+                  :bar_size => '30 mins',
                   :data_type => :trades,
                   :format_date => 1}
   before(:all) do

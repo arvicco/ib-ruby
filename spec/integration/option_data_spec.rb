@@ -8,7 +8,7 @@ describe 'Request Market Data for Options', :if => :us_trading_hours,
     @ib = IB::Connection.new OPTS[:connection].merge(:logger => mock_logger)
 
     @ib.send_message :RequestMarketData, :id => 456,
-                     :contract => IB::Symbols::Options[:aapl500]
+                     :contract => IB::Symbols::Options[:aapl100]
     @ib.wait_for :TickPrice, :TickSize, :TickString, :TickOption, 5 # sec
   end
 

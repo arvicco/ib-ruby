@@ -31,6 +31,9 @@ buy_order = IB::Order.new :total_quantity => 100,
                           :transmit => false
 ib.wait_for :NextValidId
 
+# Place parent order locally (without transmitting it to IB)
+ib.place_order buy_order, symbol
+
 #-- Child STOP --
 stop_order = IB::Order.new :total_quantity => 100,
                           :limit_price => 0,
@@ -38,7 +41,7 @@ stop_order = IB::Order.new :total_quantity => 100,
                           :action => 'SELL',
                           :order_type => 'STP',
                           :parent_id => buy_order.local_id,
-                          :transmit => true
+                          :transmit => false
 #-- Profit LMT
 profit_order = IB::Order.new :total_quantity => 100,
                           :limit_price => profit_price,
@@ -46,11 +49,6 @@ profit_order = IB::Order.new :total_quantity => 100,
                           :order_type => 'LMT',
                           :parent_id => buy_order.local_id,
                           :transmit => true
-
-# place parent order
-ib.place_order buy_order, symbol
-stop_order.parent_id = buy_order.local_id
-profit_order.parent_id = buy_order.local_id
 
 # place child orders
 ib.place_order stop_order, symbol

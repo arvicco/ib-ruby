@@ -14,15 +14,15 @@ require 'ib-ruby'
            1 => IB::Symbols::Stocks[:vxx],
            2 => IB::Symbols::Futures[:vix],
            3 => IB::Symbols::Futures[:ym],
-           4 => IB::Symbols::Options[:wfc20],
-           5 => IB::Symbols::Options[:vix20],
+           4 => IB::Symbols::Options[:wfc50],
+          #  5 => IB::Symbols::Options[:vix], # VIX options change too often
            6 => IB::Symbols::Options[:vxx40],
            7 => IB::Symbols::Forex[:eurusd],
-           # 8 => IB::Symbols::Bonds[:wag],
+           8 => IB::Symbols::Bonds[:aapl],
            9 => IB::Symbols::Stocks[:wrong]}
 
 # Connect to IB TWS.
-ib = IB::Connection.new :client_id => 1112, :port => 7496 # TWS
+ib = IB::Connection.new :client_id => 1112 #, :port => 7496 # TWS
 ib.wait_for :NextValidOrderId
 
 # Subscribe to TWS alerts/errors and contract data end marker

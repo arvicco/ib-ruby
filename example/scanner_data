@@ -7,15 +7,11 @@ require 'bundler/setup'
 $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
 require 'ib-ruby'
 
-
-
 # Connect to IB TWS.
 ib = IB::Connection.new :client_id => 1112 #, :port => 7496 # TWS
 
-
 # Subscribe to TWS alerts/errors
 ib.subscribe(:Alert) { |msg| puts msg.to_human }
-
 
 # Subscribe to ScannerData incoming events.  The code passed in the block
 # will be executed when a message of that type is received, with the received
@@ -53,8 +49,8 @@ mess = IB::Messages::Outgoing::RequestScannerSubscription.new(
                     :scanner_setting_pairs => "Annual,true",
                     :stock_type_filter => "Stock"
                     )
-                    
-ib.send_message( mess )   
+
+ib.send_message( mess )
 
 # IB does not send any indication when all  data is done being delivered.
 # So we need to interrupt manually when our request is answered.

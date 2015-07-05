@@ -42,7 +42,7 @@ end
 @ib.wait_for :NextValidId
 
 # Create multi-legged option Combo using utility method above
-combo = butterfly 'GOOG', '201301', 'CALL', 500, 510, 520
+combo = butterfly 'GOOG', '201601', 'CALL', 500, 510, 520
 
 # Create Order stub
 order = IB::Order.new :total_quantity => 10, # 10 butterflies
